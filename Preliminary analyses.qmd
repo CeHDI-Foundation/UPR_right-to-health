@@ -22,13 +22,15 @@ pacman::p_load(
   here,
   tidyverse,
   janitor,
-  DT
+  DT,
+  rnaturalearth
 )
 
 # Load or install packages from GitHub:
 pacman::p_load_gh(
   "DrMattG/SDGsR", # Uses API to get SDGs data
   "aphp/rgho" # Uses API to get data from Global Health Observatory
+  # "m-muecke/isocountry" # Get ISO codes for countries
 )
 ```
 
@@ -60,6 +62,20 @@ sdg_data <- readRDS(here("data","sdg_data.rds")) |>
 # OHCHR <- jsonlite::read_json(here("data", "export-full-en.json"))
 # OHCHR <- tidyjson::read_json(here("data", "export-full-en.json"))
 ```
+
+Read in ISO codes to better link with other datasets
+```{r}
+iso_countries <- 
+  # Get the map data
+  rnaturalearth::ne_countries(scale = "large", returnclass = "sf") |> 
+  filter(name_long != "Antarctica") |> 
+  select(admin, name_long, 
+         iso_a3,iso_a3_eh, # Country codes for matching with setting data
+         formal_en, 
+         pop_est:income_grp)
+
+```
+
 
 ### Create definitions of right to health
 I then created a set of keywords to assign recommendations as being related to the "right to health". This is a key step to refine in case we opt for an automated process. Some of the keywords are partial words because I use a partial word matching (e.g. "prophyla" will match with both "prophylaxis" as well as "prophylactics"). **Need to be careful to not accidentally include irrelevent terms.**
@@ -105,6 +121,19 @@ sdg_data <- sdg_data |>
 
 ### Analysis
 #### Percentage of recommendations linked to the right to health:
+```{r}
+sdg_data |> 
+  group_by(cycle) |> 
+  summarise(
+    n = n(),
+    n_SuR = n_distinct(state_under_review),
+    n_rec_state = n_distinct(recommending_state_upr),
+    n_health = sum(health_related=="Health-related"),
+    n_not_health = sum(health_related == "Not health-related")
+    )
+```
+
+
 ```{r}
 sdg_data |> 
   group_by(cycle) |> 
