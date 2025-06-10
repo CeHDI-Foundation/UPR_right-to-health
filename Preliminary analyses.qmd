@@ -23,18 +23,52 @@ pacman::p_load(
   tidyverse,
   janitor,
   DT,
-  rnaturalearth
+  sf,
+  necountries
 )
 
 # Load or install packages from GitHub:
 pacman::p_load_gh(
-  "DrMattG/SDGsR", # Uses API to get SDGs data
-  "aphp/rgho" # Uses API to get data from Global Health Observatory
+  # "DrMattG/SDGsR", # Uses API to get SDGs data
+  "aphp/rgho", # Uses API to get data from Global Health Observatory
+  "PPgp/wpp2024" # United Nations World Population Prospects 2024
   # "m-muecke/isocountry" # Get ISO codes for countries
 )
 ```
 
-Read in the UPR data from the SDG data from the "Human Rights Data Explorer" (created and maintained by the Danish Institute for Human Rights):
+### Get geodata of member states
+```{r}
+# Get member states geometries
+state_geo <- necountries::ne_countries |> 
+  # filter(type == "main"|country == "Alaska") |> 
+  filter(status == "member"|country == "Alaska") |> 
+  select(iso2:sovereign, region:polygon)
+
+# Combine US and Alaska
+us_alaska <- state_geo |> 
+  filter(sovereign == "United States of America") |> 
+  st_union() |> st_sf() |> 
+  rename("polygon" = 1) |> 
+  mutate(country = "United States of America")
+# Update geometry for US and Alaska
+state_geo <- state_geo |> 
+  mutate(polygon = case_when(iso3 == "USA" ~ us_alaska$polygon,
+                             .default = polygon)) |> 
+  filter(country !="Alaska")
+# Get the centroid of each state and update dataset
+point_centroid <- st_centroid(state_geo, of_largest_polygon = TRUE)
+state_geo$point_centroid <- point_centroid$polygon
+rm(us_alaska, point_centroid)
+
+# Plot
+ggplot(data = member_states)+
+  geom_sf(aes(fill = wbregion))+
+  # guides(fill = "none")+
+  geom_sf(aes(geometry = point_c, size = pop))
+```
+
+### Read in the UPR data 
+From the SDG data from the "Human Rights Data Explorer" (created and maintained by the Danish Institute for Human Rights):
 <https://sdgdata.humanrights.dk/en/mechanisms/upr/cycle-4>
 (Navigate to the link above and click "download all data" - the download preparation takes >30 minutes)
 
@@ -55,27 +89,14 @@ sdg_data <- readRDS(here("data","sdg_data.rds")) |>
     response_upr = factor(response_upr),
     title = str_split_i(paragraph, "\\|", 2)
   ) |> 
-  relocate(sdg_linked, .after = sdg_goals)
+  relocate(sdg_linked, .after = sdg_goals) |> 
+  left_join()
 
 # Alternatively download straight from OHCHR website
 # https://uhri.ohchr.org/en/our-data-api 
 # OHCHR <- jsonlite::read_json(here("data", "export-full-en.json"))
 # OHCHR <- tidyjson::read_json(here("data", "export-full-en.json"))
 ```
-
-Read in ISO codes to better link with other datasets
-```{r}
-iso_countries <- 
-  # Get the map data
-  rnaturalearth::ne_countries(scale = "large", returnclass = "sf") |> 
-  filter(name_long != "Antarctica") |> 
-  select(admin, name_long, 
-         iso_a3,iso_a3_eh, # Country codes for matching with setting data
-         formal_en, 
-         pop_est:income_grp)
-
-```
-
 
 ### Create definitions of right to health
 I then created a set of keywords to assign recommendations as being related to the "right to health". This is a key step to refine in case we opt for an automated process. Some of the keywords are partial words because I use a partial word matching (e.g. "prophyla" will match with both "prophylaxis" as well as "prophylactics"). **Need to be careful to not accidentally include irrelevent terms.**
@@ -131,6 +152,10 @@ sdg_data |>
     n_health = sum(health_related=="Health-related"),
     n_not_health = sum(health_related == "Not health-related")
     )
+
+countries_rec <- sdg_data |> 
+  group_by(cycle, recommending_state_upr) |> 
+  summarise(n_rec = n())
 ```
 
 
