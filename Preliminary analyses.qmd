@@ -24,6 +24,7 @@ citation-location: margin
 pacman::p_load(
   here,
   tidyverse,
+  plotly,
   janitor,
   DT,
   sf,
@@ -89,7 +90,8 @@ state_geo <- state_geo |>
     "Vietnam" ~ "Viet Nam",
     "eSwatini" ~ "Eswatini",
     .default = country
-  ))
+  )) |> 
+  st_cast("MULTIPOLYGON") # Recast geometry to all multipolygon rather than a mix, for downstream use with plotly
 
 # # Plot
 # ggplot(data = member_states)+
@@ -228,7 +230,7 @@ upr_data |>
   ggplot(aes(x = cycle, y = n, fill = health_related))+
   geom_bar(stat = "identity")+
   labs(y = "Number of recommendations", x = "UPR Cycle", 
-       title = "UPR recommendations related to the right to health, per cycle",
+       title = "UPRInfo: UPR recommendations related to the right to health, per cycle",
        fill = NULL)+
   geom_text(aes(label = paste0(round(perc,1), "%")), position = position_stack(vjust = 0.5))+
   geom_text(aes(label = format(n_tot, big.mark = ","), y = n_tot, vjust =-0.2))+
@@ -244,7 +246,7 @@ upr_data |>
   ggplot(aes(x = cycle, y = n, fill = action_category))+
   geom_bar(stat = "identity")+
   labs(y = "Number of recommendations", x = "UPR Cycle", 
-       title = "UPR recommendations by action category, per cycle",
+       title = "UPRInfo: UPR recommendations by action category, per cycle",
        fill = NULL)+
   geom_text(aes(label = paste0(round(perc,1), "%")), position = position_stack(vjust = 0.5))+
   geom_text(aes(label = format(n_tot, big.mark = ","), y = n_tot, vjust =-0.2))+
@@ -287,6 +289,8 @@ sdg_data |>
 
 Boxplots of number of recommendations
 ```{r}
+#| message: false
+#| warning: false
 sdg_data |> 
   group_by(cycle, state_under_review) |> 
   summarise(n = n()) |> 
