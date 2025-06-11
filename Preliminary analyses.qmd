@@ -12,6 +12,9 @@ format:
                 toc-title: "On this page" # Custom title for the TOC
                 smooth-scroll: true # Enable smooth scrolling
                 embed-resources: true # Make the html file self contained
+                grid: 
+                  body-width: 1100px
+                  margin-width: 100px
 reference-location: margin
 citation-location: margin
 ---
@@ -293,7 +296,7 @@ sdg_data |>
 
 
 ```{r}
-#|fig-width: 5
+#| fig-width: 15
 
 sdg_data |> 
   group_by(cycle, state_under_review) |> 
@@ -333,7 +336,7 @@ sdg_data |>
 ```
 
 ```{r}
-#|fig-width: 15
+#| fig-width: 15
 sdg_data |> 
   group_by(cycle, state_under_review) |> 
   count(health_related) |> 
