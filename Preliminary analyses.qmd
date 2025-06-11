@@ -152,13 +152,13 @@ upr_data <- readRDS(here("data", "UPRInfo_all.rds")) |>
 I then created a set of keywords to assign recommendations as being related to the "right to health". This is a key step to refine in case we opt for an automated process. Some of the keywords are partial words because I use a partial word matching (e.g. "prophyla" will match with both "prophylaxis" as well as "prophylactics"). **Need to be careful to not accidentally include irrelevent terms.**
 ```{r}
 # Define keywords to use to identify recommendations related to the right to health
-health_keywords <- "health|well-being|wellbeing|sanitation|sanitary|safe water|clean water|right to water|disease|sick|infectio|nutrition|tuberculosis|malaria| hiv |hiv/aids|hiv-aids|hiv and aids|hiv-positive| sti | tb |hospital|clinic|vaccin|immunisation|immunization|virus|viral|medic|doctor|nurse|nursing|maternal|contracep|abortion|reproductive|pregnan|prenatal|postnatal|neonatal|breasfe|obstetric|fertility|medic|diabetes|cancer|blood|hypertension|respiratory|prophyla|violence against women|violence against children|domestic violence|gender-based violence|sexual violence|marital violence|gender violence|virginity|hunger|malnutrition|obesity|sexual abuse|mortality|leprosy|famine|drought|food|hygiene|tobacco|smoking|child marriage|forced marriage|infanticide|mutilation|honor crime|honor killing|honour crime|honour killing|breast ironing|harmful practices|harmful traditional practices|disaster|disabled|disabili"
+health_keywords <- "health|well-being|wellbeing|sanitation|sanitary|safe water|clean water|right to water|disease|sick|infectio|nutrition|tuberculosis|malaria|with hiv| hiv |hiv/aids|hiv-aids|hiv and aids|hiv-positive| sti | tb |hospital|clinic|vaccin|immunisation|immunization|virus|viral|medic|doctor|nurse|nursing|maternal|contracep|abortion|reproductive|pregnan|prenatal|postnatal|neonatal|breasfe|obstetric|fertility|medic|diabetes|cancer|blood|hypertension|respiratory|prophyla|violence against women|violence against children|domestic violence|family violence|violence in the family|gender-based violence|sexual violence|marital violence|gender violence| rape|virginity|hunger|malnutrition|obesity|sexual abuse|mortality|leprosy|famine|drought|food|hygiene|tobacco|smoking|child marriage|forced marriage|early marriage|infanticide|mutilation|honor crime|honor killing|honour crime|honour killing|breast ironing|harmful practices|harmful traditional practices|disaster|disabled|disabili|intersex|same sex|same-sex|sterilization"
 
 # Define combinations of keywords for the right to health
 keywords_comb1a <- "child|girl|women|sexual|domestic|gender|marital|lgbt"
 keywords_comb1b <- "abuse|maltreatment|violence|sexual|same-sex"
 
-keywords_comb2a <- "forced"
+keywords_comb2a <- "forced|minimum"
 keywords_comb2b <- "marriage"
 
 keywords_comb3a <- "sex|gender|civil identity|transgender"
@@ -248,11 +248,13 @@ upr_data |>
   theme_bw()
 ```
 
-### Analysis
-#### Percentage of recommendations linked to the right to health:
+### Analysis (using the SDG dataset for now)
+#### Number of recommendations
 ```{r}
-sdg_data |> 
-  group_by(cycle) |> 
+#|message: false
+#|warning: false
+sdg_data |>
+  group_by(cycle) |>
   summarise(
     n = n(),
     n_SuR = n_distinct(state_under_review),
@@ -261,29 +263,37 @@ sdg_data |>
     n_not_health = sum(health_related == "Not health-related")
   )
 
-countries_rec <- sdg_data |> 
-  group_by(cycle, recommending_state_upr) |> 
-  summarise(n_rec = n())
+# countries_rec <- sdg_data |> 
+#   group_by(cycle, recommending_state_upr) |> 
+#   summarise(n_rec = n())
+# 
+# countries_rec |> 
+#   # filter(cycle %in% c("Cycle 1", "Cycle 2")) |> 
+#   ggplot(aes(x = cycle, y = n_rec))+
+#   geom_boxplot()
+```
 
-countries_rec |> 
-  # filter(cycle %in% c("Cycle 1", "Cycle 2")) |> 
-  ggplot(aes(x = cycle, y = n_rec))+
-  geom_boxplot()
-
+Average number of recommendations per cycle
+```{r}
 sdg_data |> 
   group_by(cycle) |> 
   summarise(n = n()/n_distinct(state_under_review))
+```
 
+Boxplots of number of recommendations
+```{r}
 sdg_data |> 
   group_by(cycle, state_under_review) |> 
   summarise(n = n()) |> 
   ggplot(aes(x = cycle, y = n))+ 
+  labs(title = "Boxplots of the number of recommendations received by each state",
+       y = "Number of recommendations")+
   geom_boxplot()
 ```
 
 
 ```{r}
-#|fig-width: 10
+#|fig-width: 5
 
 sdg_data |> 
   group_by(cycle, state_under_review) |> 
@@ -293,7 +303,9 @@ sdg_data |>
   # ungroup()+
   ggplot()+
   theme_bw()+
-  labs(title = "Number of recommendations issued to states, per cycle", fill = "Number of\nrecommendations")+
+  labs(title = "Number of recommendations issued to states, per UPR cycle", 
+       fill = NULL,
+       caption = "* Cycle 4 is currently underway and the data is incomplete")+
   # geom_sf(aes(geometry = polygon, color = wbregion))+
     geom_sf(aes(geometry = polygon, fill = n))+
   scale_fill_gradient2(low = "white", mid = "yellow", high = "red", midpoint = 150)+
@@ -301,7 +313,7 @@ sdg_data |>
   theme(axis.text = element_blank(), axis.ticks = element_blank(), panel.grid = element_blank())
 ```
 
-
+#### Linkage to right to health
 ```{r}
 sdg_data |> 
   group_by(cycle) |> 
@@ -321,6 +333,7 @@ sdg_data |>
 ```
 
 ```{r}
+#|fig-width: 15
 sdg_data |> 
   group_by(cycle, state_under_review) |> 
   count(health_related) |> 
@@ -332,7 +345,9 @@ sdg_data |>
   # ungroup()+
   ggplot()+
   theme_bw()+
-  labs(title = "% of recommendations linked to right to health, per cycle", fill = "%")+
+  labs(title = "% of recommendations linked to right to health, per UPR cycle", 
+       fill = "%",
+       caption = "* Cycle 4 is currently underway and the data is incomplete")+
   # geom_sf(aes(geometry = polygon, color = wbregion))+
     geom_sf(aes(geometry = polygon, fill = perc))+
   scale_fill_gradient2(low = "white", mid = "yellow", high = "red", midpoint = 10)+
@@ -615,27 +630,27 @@ MMR <- get_gho_data(code = "MDG_0000000026") |>
   )
 ```
 
-## Link to indicators from SDGs
-```{r}
-Goals<-get_SDGs_goals()
+<!-- ## Link to indicators from SDGs -->
+<!-- ```{r} -->
+<!-- Goals<-get_SDGs_goals() -->
 
-ind_lst<-get_indicator_list()
+<!-- ind_lst<-get_indicator_list() -->
 
-ind_lst %>% 
-  filter(goal=="3") %>% 
-  select(target, code, description) %>% 
-  kableExtra::kable()
+<!-- ind_lst %>%  -->
+<!--   filter(goal=="3") %>%  -->
+<!--   select(target, code, description) %>%  -->
+<!--   kableExtra::kable() -->
 
-ind_lst %>% 
-  filter(target=="5.2") %>% 
-  select(target, code, description) %>% 
-  kableExtra::kable()
+<!-- ind_lst %>%  -->
+<!--   filter(target=="5.2") %>%  -->
+<!--   select(target, code, description) %>%  -->
+<!--   kableExtra::kable() -->
 
-partner_violence <- get_indicator_data("5.2.1")
-sexual_violence <- get_indicator_data("5.2.2")
-health_expenditure <- get_indicator_data("3.8.2")
+<!-- partner_violence <- get_indicator_data("5.2.1") -->
+<!-- sexual_violence <- get_indicator_data("5.2.2") -->
+<!-- health_expenditure <- get_indicator_data("3.8.2") -->
 
-```
+<!-- ``` -->
 
 ### Plots
 #### UHC Indicators
