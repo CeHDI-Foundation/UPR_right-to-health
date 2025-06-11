@@ -34,7 +34,7 @@ pacman::p_load(
 # Load or install packages from GitHub:
 pacman::p_load_gh(
   "DrMattG/SDGsR", # Uses API to get SDGs data
-  "aphp/rgho", # Uses API to get data from Global Health Observatory
+  "aphp/rgho" # Uses API to get data from Global Health Observatory
   # "PPgp/wpp2024" # United Nations World Population Prospects 2024
   # "m-muecke/isocountry" # Get ISO codes for countries
 )
