@@ -302,9 +302,10 @@ sdg_data |>
 #| message: false
 #| warning: false
 
-sdg_data |> 
+p <- sdg_data |> 
   group_by(cycle, state_under_review) |> 
-  summarise(n = n()) |> 
+  summarise(n = n(),
+            t_label = paste0(state_under_review, ": ", n)) |> 
   left_join(state_geo, join_by(state_under_review == country)) |> 
   # st_as_sf() |> 
   # ungroup()+
@@ -313,11 +314,12 @@ sdg_data |>
   labs(title = "Number of recommendations issued to states, per UPR cycle", 
        fill = NULL,
        caption = "* Cycle 4 is currently underway and the data is incomplete")+
-  geom_sf(data = state_geo, aes(geometry = polygon), fill = "grey", alpha = 0.4)+
-  geom_sf(aes(geometry = polygon, fill = n))+
+  geom_sf(data = state_geo, aes(geometry = polygon, text = country), fill = "grey", alpha = 0.4, lwd=0.01)+
+  geom_sf(aes(geometry = polygon, fill = n, text = t_label), lwd=0.01)+
   scale_fill_gradient2(low = "white", mid = "yellow", high = "red", midpoint = 150)+
   facet_wrap(.~cycle)+
   theme(axis.text = element_blank(), axis.ticks = element_blank(), panel.grid = element_blank())
+plotly::ggplotly(p, tooltip = "text")
 ```
 
 #### Linkage to right to health
@@ -343,11 +345,12 @@ sdg_data |>
 #| out-width: 100%
 #| message: false
 #| warning: false
-sdg_data |> 
+p <- sdg_data |> 
   group_by(cycle, state_under_review) |> 
   count(health_related) |> 
   mutate(perc = n/sum(n)*100,
-         n_tot = sum(n)) |> 
+         n_tot = sum(n),
+         t_label = paste0(state_under_review, ": ", round(perc,1), "%")) |> 
   left_join(state_geo, join_by(state_under_review == country)) |> 
   filter(health_related == "Health-related") |> 
   # st_as_sf() |> 
@@ -357,11 +360,12 @@ sdg_data |>
   labs(title = "% of recommendations linked to right to health, per UPR cycle", 
        fill = "%",
        caption = "* Cycle 4 is currently underway and the data is incomplete")+
-  geom_sf(data = state_geo, aes(geometry = polygon), fill = "grey", alpha = 0.4)+
-  geom_sf(aes(geometry = polygon, fill = perc))+
+  geom_sf(data = state_geo, aes(geometry = polygon, text = country), fill = "grey", alpha = 0.4, lwd=0.01)+
+  geom_sf(aes(geometry = polygon, fill = perc, text = t_label), lwd = 0.01)+
   scale_fill_gradient2(low = "white", mid = "yellow", high = "red", midpoint = 10)+
   facet_wrap(.~cycle)+
   theme(axis.text = element_blank(), axis.ticks = element_blank(), panel.grid = element_blank())
+plotly::ggplotly(p, tooltip = "text")
 ```
 
 #### Percentage of recommendations linked to SDGs
