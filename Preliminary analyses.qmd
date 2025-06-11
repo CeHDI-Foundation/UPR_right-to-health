@@ -207,62 +207,62 @@ sdg_data <- sdg_data |>
   relocate(health_related, .after = text)
 ```
 
-#### UPRInfo dataset
-```{r}
-upr_data <- upr_data |> 
-  mutate(
-    health_related = factor(case_when(
-      str_detect(tolower(recommendation), health_keywords)| 
-        str_detect(tolower(issues), "health|sanitation|hiv ")
-      # str_detect(targets, "5.6|16.1|16.2")
-      ~ "Health-related",
-      # Combo 1
-      str_detect(tolower(recommendation), keywords_comb1a)&
-        str_detect(tolower(recommendation), keywords_comb1b)~ "Health-related",
-      # Combo 2
-      str_detect(tolower(recommendation), keywords_comb2a)&
-        str_detect(tolower(recommendation), keywords_comb2b)~ "Health-related",
-      # Combo 3
-      str_detect(tolower(recommendation), keywords_comb3a)&
-        str_detect(tolower(recommendation), keywords_comb3b)~ "Health-related",
-      
-      .default = "Not health-related"
-    ), levels = c("Not health-related", "Health-related"))
-  ) |> 
-  relocate(health_related, .after = recommendation)
+<!-- #### UPRInfo dataset -->
+<!-- ```{r} -->
+<!-- upr_data <- upr_data |>  -->
+<!--   mutate( -->
+<!--     health_related = factor(case_when( -->
+<!--       str_detect(tolower(recommendation), health_keywords)|  -->
+<!--         str_detect(tolower(issues), "health|sanitation|hiv ") -->
+<!--       # str_detect(targets, "5.6|16.1|16.2") -->
+<!--       ~ "Health-related", -->
+<!--       # Combo 1 -->
+<!--       str_detect(tolower(recommendation), keywords_comb1a)& -->
+<!--         str_detect(tolower(recommendation), keywords_comb1b)~ "Health-related", -->
+<!--       # Combo 2 -->
+<!--       str_detect(tolower(recommendation), keywords_comb2a)& -->
+<!--         str_detect(tolower(recommendation), keywords_comb2b)~ "Health-related", -->
+<!--       # Combo 3 -->
+<!--       str_detect(tolower(recommendation), keywords_comb3a)& -->
+<!--         str_detect(tolower(recommendation), keywords_comb3b)~ "Health-related", -->
 
-upr_data |> 
-  group_by(cycle) |> 
-  count(health_related) |> 
-  mutate(perc = n/sum(n)*100,
-         n_tot = sum(n)) |> 
-  ggplot(aes(x = cycle, y = n, fill = health_related))+
-  geom_bar(stat = "identity")+
-  labs(y = "Number of recommendations", x = "UPR Cycle", 
-       title = "UPRInfo: UPR recommendations related to the right to health, per cycle",
-       fill = NULL)+
-  geom_text(aes(label = paste0(round(perc,1), "%")), position = position_stack(vjust = 0.5))+
-  geom_text(aes(label = format(n_tot, big.mark = ","), y = n_tot, vjust =-0.2))+
-  # geom_text(aes(label = paste0("n = ", format(n, big.mark = ","))))+
-  # geom_text(aes(label = paste0("n = ", scales::label_comma(n))), position = position_stack(), vjust = 1)+
-  theme_bw()
+<!--       .default = "Not health-related" -->
+<!--     ), levels = c("Not health-related", "Health-related")) -->
+<!--   ) |>  -->
+<!--   relocate(health_related, .after = recommendation) -->
 
-upr_data |> 
-  group_by(cycle) |> 
-  count(action_category) |> 
-  mutate(perc = n/sum(n)*100,
-         n_tot = sum(n)) |> 
-  ggplot(aes(x = cycle, y = n, fill = action_category))+
-  geom_bar(stat = "identity")+
-  labs(y = "Number of recommendations", x = "UPR Cycle", 
-       title = "UPRInfo: UPR recommendations by action category, per cycle",
-       fill = NULL)+
-  geom_text(aes(label = paste0(round(perc,1), "%")), position = position_stack(vjust = 0.5))+
-  geom_text(aes(label = format(n_tot, big.mark = ","), y = n_tot, vjust =-0.2))+
-  # geom_text(aes(label = paste0("n = ", format(n, big.mark = ","))))+
-  # geom_text(aes(label = paste0("n = ", scales::label_comma(n))), position = position_stack(), vjust = 1)+
-  theme_bw()
-```
+<!-- upr_data |>  -->
+<!--   group_by(cycle) |>  -->
+<!--   count(health_related) |>  -->
+<!--   mutate(perc = n/sum(n)*100, -->
+<!--          n_tot = sum(n)) |>  -->
+<!--   ggplot(aes(x = cycle, y = n, fill = health_related))+ -->
+<!--   geom_bar(stat = "identity")+ -->
+<!--   labs(y = "Number of recommendations", x = "UPR Cycle",  -->
+<!--        title = "UPRInfo: UPR recommendations related to the right to health, per cycle", -->
+<!--        fill = NULL)+ -->
+<!--   geom_text(aes(label = paste0(round(perc,1), "%")), position = position_stack(vjust = 0.5))+ -->
+<!--   geom_text(aes(label = format(n_tot, big.mark = ","), y = n_tot, vjust =-0.2))+ -->
+<!--   # geom_text(aes(label = paste0("n = ", format(n, big.mark = ","))))+ -->
+<!--   # geom_text(aes(label = paste0("n = ", scales::label_comma(n))), position = position_stack(), vjust = 1)+ -->
+<!--   theme_bw() -->
+
+<!-- upr_data |>  -->
+<!--   group_by(cycle) |>  -->
+<!--   count(action_category) |>  -->
+<!--   mutate(perc = n/sum(n)*100, -->
+<!--          n_tot = sum(n)) |>  -->
+<!--   ggplot(aes(x = cycle, y = n, fill = action_category))+ -->
+<!--   geom_bar(stat = "identity")+ -->
+<!--   labs(y = "Number of recommendations", x = "UPR Cycle",  -->
+<!--        title = "UPRInfo: UPR recommendations by action category, per cycle", -->
+<!--        fill = NULL)+ -->
+<!--   geom_text(aes(label = paste0(round(perc,1), "%")), position = position_stack(vjust = 0.5))+ -->
+<!--   geom_text(aes(label = format(n_tot, big.mark = ","), y = n_tot, vjust =-0.2))+ -->
+<!--   # geom_text(aes(label = paste0("n = ", format(n, big.mark = ","))))+ -->
+<!--   # geom_text(aes(label = paste0("n = ", scales::label_comma(n))), position = position_stack(), vjust = 1)+ -->
+<!--   theme_bw() -->
+<!-- ``` -->
 
 ### Analysis (using the SDG dataset for now)
 #### Number of recommendations
