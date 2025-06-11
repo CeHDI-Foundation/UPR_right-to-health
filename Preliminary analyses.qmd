@@ -121,7 +121,12 @@ sdg_data <- readRDS(here("data","sdg_data.rds")) |>
     response_upr = factor(response_upr),
     title = str_split_i(paragraph, "\\|", 2)
   ) |> 
-  relocate(sdg_linked, .after = sdg_goals)
+  relocate(sdg_linked, .after = sdg_goals) |> 
+  # remove duplicate entries of same recommendation 
+  # (sometimes repeated when multiple states make same recommendation)
+  group_by(cycle, state_under_review) |>  
+  distinct(title, .keep_all = TRUE) |> 
+  ungroup()
 
 # Alternatively download straight from OHCHR website
 # https://uhri.ohchr.org/en/our-data-api 
@@ -150,7 +155,12 @@ upr_data <- readRDS(here("data", "UPRInfo_all.rds")) |>
     "Turkey" ~ "Türkiye",
     "United Kingdom" ~ "United Kingdom of Great Britain and Northern Ireland",
     .default = state_under_review
-  ))
+  )) |> 
+  # remove duplicate entries of same recommendation 
+  #(sometimes repeated when multiple states make same recommendation)
+  group_by(cycle, state_under_review) |>  
+  distinct(recommendation, .keep_all = TRUE) |> 
+  ungroup()
 ```
 
 
@@ -319,12 +329,12 @@ sdg_data |>
        caption = "* Cycle 4 is currently underway and the data is incomplete")+
   geom_sf(data = state_geo, aes(geometry = polygon
                                 # , text = country
-                                ), fill = "grey", alpha = 0.4, lwd=0.01)+
+  ), fill = "grey", alpha = 0.4, lwd=0.01)+
   geom_sf(aes(geometry = polygon, fill = n
               # , text = t_label
-              )
-          , lwd=0.01
-          )+
+  )
+  , lwd=0.01
+  )+
   scale_fill_gradient2(low = "white", mid = "yellow", high = "red", midpoint = 150)+
   facet_wrap(.~cycle)+
   theme(axis.text = element_blank(), axis.ticks = element_blank(), panel.grid = element_blank())
@@ -356,7 +366,7 @@ sdg_data |>
 #| warning: false
 sdg_data |> 
   group_by(cycle, state_under_review) |> 
-  count(health_related) |> 
+  count(health_related, .drop = FALSE) |> 
   mutate(perc = n/sum(n)*100,
          n_tot = sum(n),
          t_label = paste0(state_under_review, ": ", round(perc,1), "%")) |> 
@@ -371,10 +381,10 @@ sdg_data |>
        caption = "* Cycle 4 is currently underway and the data is incomplete")+
   geom_sf(data = state_geo, aes(geometry = polygon
                                 # , text = country
-                                ), fill = "grey", alpha = 0.4, lwd=0.01)+
+  ), fill = "grey", alpha = 0.4, lwd=0.01)+
   geom_sf(aes(geometry = polygon, fill = perc
               # , text = t_label
-              ), lwd = 0.01)+
+  ), lwd = 0.01)+
   scale_fill_gradient2(low = "white", mid = "yellow", high = "red", midpoint = 10)+
   facet_wrap(.~cycle)+
   theme(axis.text = element_blank(), axis.ticks = element_blank(), panel.grid = element_blank())
