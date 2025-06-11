@@ -24,7 +24,7 @@ citation-location: margin
 pacman::p_load(
   here,
   tidyverse,
-  plotly,
+  # plotly,
   janitor,
   DT,
   sf,
@@ -35,7 +35,7 @@ pacman::p_load(
 pacman::p_load_gh(
   "DrMattG/SDGsR", # Uses API to get SDGs data
   "aphp/rgho", # Uses API to get data from Global Health Observatory
-  "PPgp/wpp2024" # United Nations World Population Prospects 2024
+  # "PPgp/wpp2024" # United Nations World Population Prospects 2024
   # "m-muecke/isocountry" # Get ISO codes for countries
 )
 ```
@@ -90,8 +90,7 @@ state_geo <- state_geo |>
     "Vietnam" ~ "Viet Nam",
     "eSwatini" ~ "Eswatini",
     .default = country
-  )) |> 
-  st_cast("MULTIPOLYGON") # Recast geometry to all multipolygon rather than a mix, for downstream use with plotly
+  )) #|> st_cast("MULTIPOLYGON") # Recast geometry to all multipolygon rather than a mix, for downstream use with plotly
 
 # # Plot
 # ggplot(data = member_states)+
@@ -302,11 +301,11 @@ sdg_data |>
 
 
 ```{r}
-#| fig-width: 15
+#| out-width: 100%
 #| message: false
 #| warning: false
 
-p <- sdg_data |> 
+sdg_data |> 
   group_by(cycle, state_under_review) |> 
   summarise(n = n(),
             t_label = paste0(state_under_review, ": ", n)) |> 
@@ -318,12 +317,18 @@ p <- sdg_data |>
   labs(title = "Number of recommendations issued to states, per UPR cycle", 
        fill = NULL,
        caption = "* Cycle 4 is currently underway and the data is incomplete")+
-  geom_sf(data = state_geo, aes(geometry = polygon, text = country), fill = "grey", alpha = 0.4, lwd=0.01)+
-  geom_sf(aes(geometry = polygon, fill = n, text = t_label), lwd=0.01)+
+  geom_sf(data = state_geo, aes(geometry = polygon
+                                # , text = country
+                                ), fill = "grey", alpha = 0.4, lwd=0.01)+
+  geom_sf(aes(geometry = polygon, fill = n
+              # , text = t_label
+              )
+          , lwd=0.01
+          )+
   scale_fill_gradient2(low = "white", mid = "yellow", high = "red", midpoint = 150)+
   facet_wrap(.~cycle)+
   theme(axis.text = element_blank(), axis.ticks = element_blank(), panel.grid = element_blank())
-plotly::ggplotly(p, tooltip = "text")
+# plotly::ggplotly(p, tooltip = "text")
 ```
 
 #### Linkage to right to health
@@ -349,7 +354,7 @@ sdg_data |>
 #| out-width: 100%
 #| message: false
 #| warning: false
-p <- sdg_data |> 
+sdg_data |> 
   group_by(cycle, state_under_review) |> 
   count(health_related) |> 
   mutate(perc = n/sum(n)*100,
@@ -364,12 +369,16 @@ p <- sdg_data |>
   labs(title = "% of recommendations linked to right to health, per UPR cycle", 
        fill = "%",
        caption = "* Cycle 4 is currently underway and the data is incomplete")+
-  geom_sf(data = state_geo, aes(geometry = polygon, text = country), fill = "grey", alpha = 0.4, lwd=0.01)+
-  geom_sf(aes(geometry = polygon, fill = perc, text = t_label), lwd = 0.01)+
+  geom_sf(data = state_geo, aes(geometry = polygon
+                                # , text = country
+                                ), fill = "grey", alpha = 0.4, lwd=0.01)+
+  geom_sf(aes(geometry = polygon, fill = perc
+              # , text = t_label
+              ), lwd = 0.01)+
   scale_fill_gradient2(low = "white", mid = "yellow", high = "red", midpoint = 10)+
   facet_wrap(.~cycle)+
   theme(axis.text = element_blank(), axis.ticks = element_blank(), panel.grid = element_blank())
-plotly::ggplotly(p, tooltip = "text")
+# plotly::ggplotly(p, tooltip = "text")
 ```
 
 #### Percentage of recommendations linked to SDGs
