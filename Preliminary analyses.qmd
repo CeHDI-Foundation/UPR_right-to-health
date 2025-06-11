@@ -336,7 +336,7 @@ sdg_data |>
 ```
 
 ```{r}
-#| fig-width: 15
+#| out-width: 100%
 sdg_data |> 
   group_by(cycle, state_under_review) |> 
   count(health_related) |> 
