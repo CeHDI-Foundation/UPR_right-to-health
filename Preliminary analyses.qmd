@@ -782,7 +782,7 @@ left_join(state_geo, join_by(COUNTRY == iso3))
 a |> ggplot()+geom_sf(aes(geometry = polygon, fill = mmr_cat))+
   scale_fill_brewer(palette = "YlOrRd")+
   theme_bw()+
-  theme(panel.grid = element_blank(), legend.position = "inside")+
+  theme(panel.grid = element_blank())+
   labs(title = "Maternal Mortality Ratio (MMR) estimates, by country, 2023")
 ```
 
