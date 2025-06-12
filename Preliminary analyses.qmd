@@ -293,7 +293,17 @@ Average number of recommendations per cycle
 ```{r}
 sdg_data |> 
   group_by(cycle) |> 
-  summarise(n = n()/n_distinct(state_under_review))
+  summarise(avg = n()/n_distinct(state_under_review)) |> 
+  ggplot(aes(x = cycle, y = avg))+
+  geom_bar(stat = "identity")+
+  labs(y = "Average number of recommendations", x = "UPR Cycle", 
+       title = "Average number of recommendations received by States, per UPR cycle",
+       fill = NULL)+
+  geom_text(aes(label = round(avg,1), y = avg, vjust =-0.2))+
+  # geom_text(aes(label = paste0("n = ", format(n, big.mark = ","))))+
+  # geom_text(aes(label = paste0("n = ", scales::label_comma(n))), position = position_stack(), vjust = 1)+
+  theme_bw()+
+  theme(panel.grid.major.x = element_blank())
 ```
 
 Boxplots of number of recommendations
@@ -301,12 +311,15 @@ Boxplots of number of recommendations
 #| message: false
 #| warning: false
 sdg_data |> 
-  group_by(cycle, state_under_review) |> 
+  group_by(cycle, state_under_review, health_related) |> 
   summarise(n = n()) |> 
-  ggplot(aes(x = cycle, y = n))+ 
+  ggplot(aes(x = cycle, y = n, fill =  health_related))+ 
   labs(title = "Boxplots of the number of recommendations received by each state",
-       y = "Number of recommendations")+
-  geom_boxplot()
+       y = "Number of recommendations", color = NULL, fill = NULL, x = NULL)+
+  geom_jitter(aes(color = health_related), position = position_jitterdodge())+
+  geom_boxplot(outlier.shape = NA, alpha = 0.8, staplewidth = 0.5)+
+  theme_bw()+
+  theme(legend.position = "bottom", panel.grid.major.x = element_blank())
 ```
 
 
@@ -357,7 +370,8 @@ sdg_data |>
   geom_text(aes(label = format(n_tot, big.mark = ","), y = n_tot, vjust =-0.2))+
   # geom_text(aes(label = paste0("n = ", format(n, big.mark = ","))))+
   # geom_text(aes(label = paste0("n = ", scales::label_comma(n))), position = position_stack(), vjust = 1)+
-  theme_bw()
+  theme_bw()+
+  theme(panel.grid.major.x = element_blank())
 ```
 
 ```{r}
