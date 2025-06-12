@@ -47,7 +47,7 @@ pacman::p_load_gh(
 # Get member states geometries
 state_geo <- necountries::ne_countries |> 
   # filter(type == "main"|country == "Alaska") |> 
-  filter(status == "member"|country == "Alaska") |> 
+  filter(status == "member"|status == "observer"|country == "Alaska") |> 
   select(iso2:sovereign, region:polygon)
 
 # Combine US and Alaska
@@ -635,7 +635,7 @@ Make API calls to the GHO database to download the data related to the UHC indic
 #| message: false
 
 # Code for searching in GHO indicators
-a<-search_values("sexual violence", dimension = "GHO")
+# a<-search_values("sexual violence", dimension = "GHO")
 
 ## Metadata ####
 gho_codes <- get_gho_values(dimension = "GHO") |> 
@@ -762,4 +762,28 @@ MMR |>
   guides(color=guide_legend(nrow=2,byrow=TRUE))
 
 ```
+
+Mapping MMR
+```{r}
+a<-MMR |> filter(TimeDimensionValue == 2023, !is.na(country_name)) |>
+  mutate(
+    mmr_cat = factor(case_when(
+      NumericValue < 20 ~ "<20",
+      NumericValue < 100 ~ "20-99",
+      NumericValue < 300 ~ "100-299",
+      NumericValue < 500 ~ "300-499",
+      NumericValue >= 500 ~ "500+",
+      .default = NA), 
+      levels = c("<20", "20-99","100-299", "300-499", "500+" )
+    )
+  ) |> 
+left_join(state_geo, join_by(COUNTRY == iso3))
+
+a |> ggplot()+geom_sf(aes(geometry = polygon, fill = mmr_cat))+
+  scale_fill_brewer(palette = "YlOrRd")+
+  theme_bw()+
+  theme(panel.grid = element_blank(), legend.position = "inside")+
+  labs(title = "Maternal Mortality Ratio (MMR) estimates, by country, 2023")
+```
+
 
